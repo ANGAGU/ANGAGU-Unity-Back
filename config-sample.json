@@ -1,0 +1,17 @@
+{
+  "dbConfig":{
+      "host":"",
+      "user":"",
+      "password":"",
+      "database":"",
+      "timezone": "",
+      "waitForConnections":true,
+      "connectionLimit":10
+  },
+  "awsConfig":{
+      "keyId":"",
+      "secretAccessKey":"",
+      "region":""
+  },
+  "jwtSecret": ""
+}
