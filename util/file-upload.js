@@ -38,21 +38,25 @@ const upload = fileUpload.fields([
 
 const s3Upload = (file) => {
   const name = shortId.generate();
+  const key = `product/ar/${name}`;
   const fileContent = fs.readFileSync(file.path);
   const params = {
     Body: fileContent,
     Bucket: 'angagu',
-    Key: `product/ar/${name}`,
+    Key: key,
   };
-  const result = s3.putObject(params, (err, data) => {
+  s3.putObject(params, (err, data) => {
     if(err) {
       console.log(err);
       return {
         status: 'error',
-      }
+      };
     }
-  })
-  return result;
+  });
+  return {
+    status: 'success',
+    key,
+  };
 }
 
 module.exports = { upload, s3Upload };

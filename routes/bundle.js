@@ -5,6 +5,8 @@ const bundle = assetbundlecompiler.bundle;
 const setUnityPath = assetbundlecompiler.setUnityPath;
 const Android = BuildTargets.Android;
 const router = express.Router();
+
+const service = require('../database/bundle-service.js');
 const fileUpload = require('../util/file-upload.js');
 
 router.post('/:productId', fileUpload.upload, async (req, res) => {
@@ -21,7 +23,8 @@ router.post('/:productId', fileUpload.upload, async (req, res) => {
     //   .withUnityLogger((message) => console.log(`Unity: ${message}`))
     //   .to(destination);
     const result = fileUpload.s3Upload(mainFile[0]);
-    console.log(result);
+    const updateResult = await service.updateProductAr(productId, result.key, mainFile[0].originalname);
+    console.log(updateResult);
     res.status(200).end();
   } catch (err) {
     console.log(err);
