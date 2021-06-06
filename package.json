@@ -1,13 +1,15 @@
 {
   "name": "application-name",
   "version": "0.0.1",
+  "type": "module",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node --experimental-json-modules ./bin/www"
   },
   "dependencies": {
     "@mitm/assetbundlecompiler": "^1.5.0",
     "aws-sdk": "^2.922.0",
+    "bee-queue": "^1.4.0",
     "body-parser": "~1.0.0",
     "cookie-parser": "~1.0.1",
     "debug": "~0.7.4",

@@ -1,6 +1,6 @@
-const { pool } = require('./pool');
+import { pool } from './pool.js';
 
-const updateProductAr = async(productId, arUrl, fileName) => {
+export const updateProductAr = async(productId, arUrl, fileName) => {
   try {
     const [result] = await pool.query('UPDATE product SET 3d_model_url = ?, 3d_model_name = ? WHERE id = ?', [arUrl, fileName, productId]);
     console.log(result);
@@ -15,7 +15,3 @@ const updateProductAr = async(productId, arUrl, fileName) => {
     }
   } 
 };
-
-module.exports = {
-  updateProductAr,
-}

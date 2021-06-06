@@ -1,8 +1,8 @@
-const AWS = require('aws-sdk');
-const fs = require('fs');
-const multer = require('multer');
-const shortId = require('short-id');
-const awsConfig = require('../config.json');
+import AWS from 'aws-sdk';
+import { readFileSync } from 'fs';
+import multer, { diskStorage } from 'multer';
+import { generate } from 'short-id';
+import awsConfig from '../config.js';
 
 const s3 = new AWS.S3({
   accessKeyId: awsConfig.keyId,
@@ -10,7 +10,7 @@ const s3 = new AWS.S3({
   region: awsConfig.region,
 });
 
-const storage = multer.diskStorage({
+const storage = diskStorage({
   destination: function (req, file, cb) {
     if (file.fieldname === 'mainFile') {
       cb(null, `/home/ubuntu/angagu-unity/assets/main`);
@@ -27,19 +27,19 @@ const fileUpload = multer({
   storage,
 });
 
-const upload = fileUpload.fields([
+export const upload = fileUpload.fields([
   {
-    name: 'mainFile',
+    name: 'mainFile', limit: 1,
   },
   {
     name: 'textureFile',
   }
 ]);
 
-const s3Upload = (file) => {
-  const name = shortId.generate();
+export const s3Upload = (filePath) => {
+  const name = generate();
   const key = `product/ar/${name}`;
-  const fileContent = fs.readFileSync(file.path);
+  const fileContent = readFileSync(filePath);
   const params = {
     Body: fileContent,
     Bucket: 'angagu',
@@ -58,5 +58,3 @@ const s3Upload = (file) => {
     key,
   };
 }
-
-module.exports = { upload, s3Upload };

@@ -1,24 +1,24 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('static-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
+import express from 'express';
+import path from 'path';
+import favicon from 'static-favicon';
+import logger from 'morgan';
+import cookieParser from 'cookie-parser';
+import { json, urlencoded } from 'body-parser';
 
-var routes = require('./routes/index');
-var users = require('./routes/users');
-var bundle = require('./routes/bundle');
+import routes from './routes/index.js';
+import users from './routes/users.js';
+import bundle from './routes/bundle.js';
 
 var app = express();
-
+const __dirname = path.resolve();
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 app.use(favicon());
 app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded());
+app.use(json());
+app.use(urlencoded());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -58,4 +58,4 @@ app.use(function(err, req, res, next) {
 });
 
 
-module.exports = app;
+export default app;

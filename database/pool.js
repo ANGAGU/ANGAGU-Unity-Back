@@ -1,6 +1,8 @@
-const mysql = require('mysql2');
-const config = require('../config.json');
+import { createPool } from 'mysql2';
+import config from '../config.js';
 
-const pool = mysql.createPool(config.dbConfig).promise();
+const pool = createPool(config.dbConfig).promise();
 
-module.exports = { pool };
+export {
+  pool,
+};
