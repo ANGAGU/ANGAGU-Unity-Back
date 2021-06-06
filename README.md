@@ -7,7 +7,7 @@
 ## Requirements
 * Installation of activated Unity
 * Node.js v14.17.0
-* npm 7.16.0
+* npm v7.16.0
 <br/><br/>
 
 ## Install & Usage
