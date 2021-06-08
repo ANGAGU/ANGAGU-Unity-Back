@@ -8,6 +8,7 @@
 * Installation of activated Unity
 * Node.js v14.17.0
 * npm v7.16.0
+* Redis v4.0.9
 <br/><br/>
 
 ## Install & Usage
@@ -38,9 +39,18 @@ export default {
     secretAccessKey: "",
     region: ""
   },
+  jwtSecret: "",
+  redis: {
+    host: '',
+    port: 6379,
+    db: ,
+    password: '',
+    options: {},
+  },
 };
 ```
 #### Execute
 ```bash
+node util/process.js
 npm start
 ```
