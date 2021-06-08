@@ -1,51 +1,94 @@
 import express from 'express';
-import { BuildTargets as _BuildTargets, bundle as _bundle, setUnityPath as _setUnityPath } from '@mitm/assetbundlecompiler';
-const BuildTargets = _BuildTargets;
-const bundle = _bundle;
-const setUnityPath = _setUnityPath;
-const Android = BuildTargets.Android;
 const router = express.Router();
+
+import { upload } from '../util/file-upload.js';
+import { getCompanyIdByProductId } from '../database/bundle-service.js';
+import { authorization } from '../util/auth.js';
+import errCode from '../util/errCode.js';
 import Queue from 'bee-queue';
-// const bundleQueue = new Queue('bundle');
+import config from '../config.js';
 
-import { updateProductAr } from '../database/bundle-service.js';
-import { upload, s3Upload } from '../util/file-upload.js';
+const queue = new Queue('bundle', {
+  redis: config.redis,
+});
 
-router.post('/:productId', upload, async (req, res) => {
+router.post('/:productId', authorization, upload, async (req, res) => {
   try {
+    const { id, type } = res.locals;
     const { productId } = req.params;
     const { mainFile, textureFile } = req.files;
+    
     const destination = '/home/ubuntu/angagu-unity/assets/result/result.assetbundle';
-    const unityPath = process.env.UNITY_EDITOR_PATH
-    setUnityPath(unityPath);
-    const mainPath = mainFile[0].path;
-    const texturePath = textureFile.map((file) => file.path);
-    console.log(mainPath, texturePath);
-    //const job = bundleQueue.createJob();
-    // job
-    //   .timeout(3000)
-    //   .retries(2)
-    //   .save()
-    //   .then((job) => {
-    //     // job enqueued, job.id populated
-    // });
-    await bundle(mainPath, ...texturePath)
-      .targeting(Android)
-      .withBuildOptions({ chunkBasedCompression: true, strictMode: true})
-      .withLogger((message) => console.log(message))
-      .withUnityLogger((message) => console.log(`Unity: ${message}`))
-      .to(destination);
-    const result = s3Upload(destination);
-    const updateResult = await updateProductAr(productId, result.key, mainFile[0].originalname);
-    res
-      .status(200)
-      .json({
-        status: 'success',
-        data: {
-          arFilePath: result.key,
-        },
-      })
-      .end();
+
+    if (type !== 'company') {
+      res
+        .status(403)
+        .json({
+          status: 'error',
+          data: {
+            errCode: 200,
+          },
+          message: errCode[200],
+        })
+        .end();
+      return;
+    }
+    const companyId = await getCompanyIdByProductId(productId);
+    if (companyId.status !== 'success' || companyId.data == null) {
+      res
+        .status(400)
+        .json({
+          status: 'error',
+          data: {
+            errCode: 100,
+          },
+          message: errCode[100],
+        })
+        .end();
+      return;
+    }
+    if(companyId.data !== id) {
+      res
+        .status(400)
+        .json({
+          status: 'error',
+          data: {
+            errCode: 500,
+          },
+          message: errCode[500],
+        })
+        .end();
+      return;
+    }
+
+    const mainPath = mainFile.map(file => file.path);
+
+    let texturePath = [];
+    if(textureFile !== undefined){
+      texturePath = textureFile.map((file) => file.path);
+    }
+    
+    const filePath = mainPath.concat(texturePath);
+
+    const job = queue.createJob({
+      filePath,
+      destination,
+      productId,
+      originalName: mainFile[0].originalname,
+    });
+  
+    job.save(function (err) {
+      if (err) {
+        console.log('job failed to save');
+        return res.send('job failed to save');
+      }
+      console.log('saved job ' + job.id);
+      res.send(200).end();
+    });
+
+    job.on('succeeded', function (result) {
+      console.log('completed job ' + job.id);
+    });
   } catch (err) {
     console.log(err);
     res

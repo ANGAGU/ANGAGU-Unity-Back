@@ -2,12 +2,12 @@ import AWS from 'aws-sdk';
 import { readFileSync } from 'fs';
 import multer, { diskStorage } from 'multer';
 import { generate } from 'short-id';
-import awsConfig from '../config.js';
+import config from '../config.js';
 
 const s3 = new AWS.S3({
-  accessKeyId: awsConfig.keyId,
-  secretAccessKey: awsConfig.secretAccessKey,
-  region: awsConfig.region,
+  accessKeyId: config.awsConfig.keyId,
+  secretAccessKey: config.awsConfig.secretAccessKey,
+  region: config.awsConfig.region,
 });
 
 const storage = diskStorage({
