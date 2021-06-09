@@ -38,4 +38,9 @@ export default {
   606: 'not matched review',
   607: 'review not exist',
   608: 'not your review',
+  700: 'fail to request bundling',
+  701: 'model is in waiting list',
+  702: 'model is processing',
+  703: 'model is already registered',
+  704: 'please use modify mode',
 };
