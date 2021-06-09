@@ -43,4 +43,5 @@ export default {
   702: 'model is processing',
   703: 'model is already registered',
   704: 'please use modify mode',
+  705: 'no model to delete',
 };

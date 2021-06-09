@@ -17,7 +17,7 @@ router.post('/:productId', authorization, upload, async (req, res) => {
     const { id, type } = res.locals;
     const { productId } = req.params;
     const { mainFile, textureFile } = req.files;
-    const { isMod } = jsonreq.body;
+    const { isMod } = req.body;
     
     const destination = '/home/ubuntu/angagu-unity/assets/result/result.assetbundle';
 
@@ -209,6 +209,114 @@ router.post('/:productId', authorization, upload, async (req, res) => {
           err,
         },
         message: errCode[500],
+      })
+      .end();
+  }
+});
+
+router.delete('/:productId', authorization, async (req, res) => {
+  try {
+    const { id, type } = res.locals;
+    const { productId } = req.params;
+    if (type !== 'company') {
+      res
+        .status(403)
+        .json({
+          status: 'error',
+          data: {
+            errCode: 200,
+          },
+          message: errCode[200],
+        })
+        .end();
+      return;
+    }
+    const companyId = await service.getCompanyIdByProductId(productId);
+    if (companyId.status !== 'success' || companyId.data == null) {
+      res
+        .status(400)
+        .json({
+          status: 'error',
+          data: {
+            errCode: 100,
+          },
+          message: errCode[100],
+        })
+        .end();
+      return;
+    }
+    if(companyId.data !== id) {
+      res
+        .status(400)
+        .json({
+          status: 'error',
+          data: {
+            errCode: 500,
+          },
+          message: errCode[500],
+        })
+        .end();
+      return;
+    }
+
+    const checkStatus = await service.getStatus(productId);
+    if(checkStatus.status !== 'success') {
+      res
+        .status(400)
+        .json({
+          status: 'error',
+          data: {
+            errCode: 100,
+          },
+          message: errCode[100],
+        })
+        .end();
+      return;
+    }
+    if(checkStatus.data === null) {
+      res
+        .status(400)
+        .json({
+          status: 'error',
+          data: {
+            errCode: 705,
+          },
+          message: errCode[705],
+        })
+        .end();
+      return;
+    }
+    const delResult = await service.delAr(productId);
+    if(delResult.status !== 'success'){
+      res
+        .status(400)
+        .json({
+          status: 'error',
+          data: {
+            errCode: 303,
+          },
+          message: errCode[303],
+        })
+        .end();
+      return;
+    }
+    res
+      .status(200)
+      .json({
+        status: 'success',
+        data: {},
+      })
+      .end();
+  } catch(err) {
+    res
+      .status(500)
+      .json({
+        status: 'error',
+        data: {
+          errCode: 0,
+          err,
+        },
+        message: errCode[0],
       })
       .end();
   }

@@ -57,3 +57,18 @@ export const getStatus = async(productId) => {
     }
   }
 };
+
+export const delAr = async(productId) => {
+  try {
+    const [result] = await pool.query('UPDATE product SET 3d_model_url = null, 3d_model_name = null, 3d_model_status = null WHERE id = ?', productId);
+    return {
+      status: 'success',
+    };
+  } catch (err) {
+    console.log(err);
+    return {
+      status: 'error',
+      err,
+    };
+  }
+};
