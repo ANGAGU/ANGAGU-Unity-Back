@@ -44,4 +44,6 @@ export default {
   703: 'model is already registered',
   704: 'please use modify mode',
   705: 'no model to delete',
+  706: 'no model to modify',
+  800: 'not valid extenstion',
 };

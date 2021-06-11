@@ -7,6 +7,7 @@ import { authorization } from '../util/auth.js';
 import errCode from '../util/errCode.js';
 import Queue from 'bee-queue';
 import config from '../config.js';
+import path from 'path'
 
 const queue = new Queue('bundle', {
   redis: config.redis,
@@ -18,6 +19,41 @@ router.post('/:productId', authorization, upload, async (req, res) => {
     const { productId } = req.params;
     const { mainFile, textureFile } = req.files;
     const { isMod } = req.body;
+    const mainExt = ['.obj', '.fbx', '.dae', '.3ds', '.dxf'];
+    const textureExt = ['.png', '.jpg', '.mtl'];
+
+    mainFile.forEach(x => {
+      if (!mainExt.includes(path.extname(x.path).toLowerCase())) {
+        res
+          .status(400)
+          .json({
+            status: 'error',
+            data: {
+              errCode: 800,
+            },
+            message: errCode[800],
+          })
+          .end();
+        return;
+      }
+    });
+
+    textureFile.forEach(x => {
+      if (!textureExt.includes(path.extname(x.path).toLowerCase())) {
+        res
+          .status(400)
+          .json({
+            status: 'error',
+            data: {
+              errCode: 800,
+            },
+            message: errCode[800],
+          })
+          .end();
+        return;
+      }
+    });
+    res.status(200).end();
     
     const destination = '/home/ubuntu/angagu-unity/assets/result/result.assetbundle';
 
@@ -76,6 +112,45 @@ router.post('/:productId', authorization, upload, async (req, res) => {
         .end();
       return;
     }
+
+    if(isMod == 1) {
+      if(checkStatus.data !== null) {
+        let payLoad = {
+          status: 'error',
+          data: {
+            errCode: 0,
+          },
+          message: '',
+        }
+        switch(checkStatus.data) {
+          case 0:
+            payLoad.data.errCode = 701;
+            payLoad.message = errCode[701];
+            break;
+          case 1:
+            payLoad.data.errCode = 702;
+            payLoad.message = errCode[702];
+            break;
+        }
+        res
+          .status(400)
+          .json(payLoad)
+          .end();
+        return;
+      } else {
+        res
+        .status(400)
+        .json({
+          status: 'error',
+          data: {
+            errCode: 706,
+          },
+          message: errCode[706],
+        })
+        .end();
+      return;
+      }
+   }
     if(checkStatus.data !== null && isMod == 0) {
       let payLoad = {
         status: 'error',
@@ -100,31 +175,6 @@ router.post('/:productId', authorization, upload, async (req, res) => {
         case 3:
           payLoad.data.errCode = 704;
           payLoad.message = errCode[704];
-          break;
-      }
-      res
-        .status(400)
-        .json(payLoad)
-        .end();
-      return;
-    }
-
-    if(checkStatus.data !== null && isMod == 1) {
-      let payLoad = {
-        status: 'error',
-        data: {
-          errCode: 0,
-        },
-        message: '',
-      }
-      switch(checkStatus.data) {
-        case 0:
-          payLoad.data.errCode = 701;
-          payLoad.message = errCode[701];
-          break;
-        case 1:
-          payLoad.data.errCode = 702;
-          payLoad.message = errCode[702];
           break;
       }
       res
@@ -206,9 +256,10 @@ router.post('/:productId', authorization, upload, async (req, res) => {
       .json({
         status: 'error',
         data: {
+          errCode: 0,
           err,
         },
-        message: errCode[500],
+        message: errCode[0],
       })
       .end();
   }
