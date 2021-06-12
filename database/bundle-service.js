@@ -59,17 +59,23 @@ export const getStatus = async(productId) => {
 };
 
 export const delAr = async(productId) => {
+  const conn = await pool.getConnection();
   try {
-    const [result] = await pool.query('UPDATE product SET 3d_model_url = null, 3d_model_name = null, 3d_model_status = null WHERE id = ?', productId);
+    await conn.beginTransaction();
+    const [result] = await conn.query('UPDATE product SET 3d_model_url = null, 3d_model_name = null, 3d_model_status = null WHERE id = ?', productId);
+    const [result2] = await conn.query('DELETE FROM original_ar WHERE product_id = ?', productId);
+    await conn.commit();
     return {
       status: 'success',
     };
   } catch (err) {
-    console.log(err);
+    await conn.rollback();
     return {
       status: 'error',
       err,
     };
+  } finally {
+    conn.release();
   }
 };
 
