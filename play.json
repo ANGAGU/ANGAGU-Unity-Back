@@ -3,7 +3,7 @@
   [
     {
       "name": "worker",
-      "script": "node util/process.js",
+      "script": "babel-node util/process.js",
       "watch": false,
       "env": {
         "NODE_ENV": "production",
@@ -15,7 +15,7 @@
     },
     {
       "name": "main",
-      "script": "node --experimental-json-modules ./bin/www",
+      "script": "babel-node ./bin/www",
       "watch": false,
       "env": {
         "NODE_ENV": "production",

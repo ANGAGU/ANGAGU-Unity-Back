@@ -15,23 +15,32 @@ const queue = new Queue('bundle', {
 queue.on('ready', function () {
   queue.process(async (job, done) => {
     try{
+      // process start
       await service.updateStatus(job.data.productId, 1);
+
       const unityPath = config.unityPath;
       setUnityPath(unityPath);
+
+      // bundling start
       await bundle(...job.data.filePath)
-      .targeting(Android)
-      .withBuildOptions({ chunkBasedCompression: true, strictMode: true})
-      .withLogger((message) => console.log(message))
-      .withUnityLogger((message) => console.log(`Unity: ${message}`))
-      .to(job.data.destination);
-      const result = s3Upload(job.data.destination);
+            .targeting(Android)
+            .withBuildOptions({ chunkBasedCompression: true, strictMode: true})
+            .withLogger((message) => console.log(message))
+            .withUnityLogger((message) => console.log(`Unity: ${message}`))
+            .to(job.data.destination);
+      
+      // upload to s3
+      const result = await s3Upload(job.data.destination);
       if(result.status === 'error') {
         return Promise.reject('s3 upload fail');
       }
+
+      // update database
       const updateResult = await service.updateProductAr(job.data.productId, result.key, job.data.originalName);
       if(updateResult.status === 'error') {
         return Promise.reject('db update fail');
       }
+      
       setTimeout(function () {
         done(null);
       }, 3000);

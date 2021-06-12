@@ -36,7 +36,7 @@ export const upload = fileUpload.fields([
   }
 ]);
 
-export const s3Upload = (filePath) => {
+export const s3Upload = async (filePath) => {
   const name = generate();
   const key = `product/ar/${name}`;
   const fileContent = readFileSync(filePath);
@@ -58,3 +58,49 @@ export const s3Upload = (filePath) => {
     key,
   };
 }
+
+export const uploadOriginal = async (mainFile, textureFile, id) => {
+  const texturePath = [];
+  const mainKey = `product/${id}/ar/original/main/${mainFile.originalname}`;
+  const mainFileContent = readFileSync(mainFile.path);
+  const mainParams = {
+    Body: mainFileContent,
+    Bucket: 'angagu',
+    Key: mainKey,
+  };
+  s3.putObject(mainParams, (err, data) => {
+    if(err) {
+      console.log(err);
+      return {
+        status: 'error',
+      };
+    }
+  });
+  if(textureFile !== undefined){
+    textureFile.forEach((file) => {
+      const textureKey = `product/${id}/ar/original/texture/${file.originalname}`;
+      texturePath.push(textureKey);
+      const textureFileContent = readFileSync(file.path);
+      const textureParams = {
+        Body: textureFileContent,
+        Bucket: 'angagu',
+        Key: textureKey,
+      }
+      s3.putObject(textureParams, (err, data) => {
+        if(err) {
+          console.log(err);
+          return {
+            status: 'error',
+          };
+        }
+      });
+    });
+  }
+  return {
+    status: 'success',
+    mainKey,
+    texturePath
+  };
+}
+
+

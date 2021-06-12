@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router();
 
-import { upload } from '../util/file-upload.js';
+import { upload, original, s3Upload, uploadOriginal } from '../util/file-upload.js';
 import * as service from '../database/bundle-service.js';
 import { authorization } from '../util/auth.js';
 import errCode from '../util/errCode.js';
@@ -21,7 +21,22 @@ router.post('/:productId', authorization, upload, async (req, res) => {
     const { isMod } = req.body;
     const mainExt = ['.obj', '.fbx', '.dae', '.3ds', '.dxf'];
     const textureExt = ['.png', '.jpg', '.mtl'];
+    const destination = '/home/ubuntu/angagu-unity/assets/result/result.assetbundle';
 
+    if(!mainFile) {
+      res
+          .status(200)
+          .json({
+            status: 'error',
+            data: {
+              errCode: 302,
+            },
+            message: errCode[302],
+          })
+          .end();
+        return;
+    }
+    // main file extension check
     mainFile.forEach(x => {
       if (!mainExt.includes(path.extname(x.path).toLowerCase())) {
         res
@@ -38,25 +53,24 @@ router.post('/:productId', authorization, upload, async (req, res) => {
       }
     });
 
-    textureFile.forEach(x => {
-      if (!textureExt.includes(path.extname(x.path).toLowerCase())) {
-        res
-          .status(400)
-          .json({
-            status: 'error',
-            data: {
-              errCode: 800,
-            },
-            message: errCode[800],
-          })
-          .end();
-        return;
-      }
-    });
-    res.status(200).end();
-    
-    const destination = '/home/ubuntu/angagu-unity/assets/result/result.assetbundle';
-
+    // texture file extension check
+    if(!mainFile) {
+      textureFile.forEach(x => {
+        if (!textureExt.includes(path.extname(x.path).toLowerCase())) {
+          res
+            .status(400)
+            .json({
+              status: 'error',
+              data: {
+                errCode: 800,
+              },
+              message: errCode[800],
+            })
+            .end();
+          return;
+        }
+      });
+    }
     if (type !== 'company') {
       res
         .status(403)
@@ -70,6 +84,7 @@ router.post('/:productId', authorization, upload, async (req, res) => {
         .end();
       return;
     }
+
     const companyId = await service.getCompanyIdByProductId(productId);
     if (companyId.status !== 'success' || companyId.data == null) {
       res
@@ -113,8 +128,9 @@ router.post('/:productId', authorization, upload, async (req, res) => {
       return;
     }
 
+    // modify ar file
     if(isMod == 1) {
-      if(checkStatus.data !== null) {
+      if(checkStatus.data !== null && checkStatus.data !== 2) {
         let payLoad = {
           status: 'error',
           data: {
@@ -122,35 +138,35 @@ router.post('/:productId', authorization, upload, async (req, res) => {
           },
           message: '',
         }
-        switch(checkStatus.data) {
-          case 0:
-            payLoad.data.errCode = 701;
-            payLoad.message = errCode[701];
-            break;
-          case 1:
-            payLoad.data.errCode = 702;
-            payLoad.message = errCode[702];
-            break;
+        if(checkStatus.data === 0) {
+          payLoad.data.errCode = 701;
+          payLoad.message = errCode[701];
+        }
+        else if(checkStatus.data === 1) {
+          payLoad.data.errCode = 702;
+          payLoad.message = errCode[702];
         }
         res
           .status(400)
           .json(payLoad)
           .end();
         return;
-      } else {
+      } else if(checkStatus.data == null) {
         res
-        .status(400)
-        .json({
-          status: 'error',
-          data: {
-            errCode: 706,
-          },
-          message: errCode[706],
-        })
-        .end();
-      return;
+          .status(400)
+          .json({
+            status: 'error',
+            data: {
+              errCode: 706,
+            },
+            message: errCode[706],
+          })
+          .end();
+        return;
       }
-   }
+    }
+
+    // post ar file
     if(checkStatus.data !== null && isMod == 0) {
       let payLoad = {
         status: 'error',
@@ -213,6 +229,7 @@ router.post('/:productId', authorization, upload, async (req, res) => {
             message: errCode[700],
           })
           .end();
+        return;
       }
       console.log('saved job ' + job.id);
       try {
@@ -224,6 +241,7 @@ router.post('/:productId', authorization, upload, async (req, res) => {
             data: {},
           })
           .end();
+        return;
       } catch (err) {
         console.log(err);
       }
@@ -241,6 +259,8 @@ router.post('/:productId', authorization, upload, async (req, res) => {
       try {
         console.log('completed job ' + job.id);
         await service.updateStatus(productId, 2);
+        const data = await uploadOriginal(mainFile[0], textureFile, productId);
+        await service.addProductAr(productId, data.mainKey, data.texturePath);
       } catch (err) {
         console.log(err);
       }
