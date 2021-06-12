@@ -54,7 +54,7 @@ router.post('/:productId', authorization, upload, async (req, res) => {
     });
 
     // texture file extension check
-    if(!mainFile) {
+    if(textureFile) {
       textureFile.forEach(x => {
         if (!textureExt.includes(path.extname(x.path).toLowerCase())) {
           res
@@ -129,45 +129,41 @@ router.post('/:productId', authorization, upload, async (req, res) => {
     }
 
     // modify ar file
-    if(isMod == 1) {
-      if(checkStatus.data !== null && checkStatus.data !== 2) {
-        let payLoad = {
-          status: 'error',
-          data: {
-            errCode: 0,
-          },
-          message: '',
-        }
-        if(checkStatus.data === 0) {
+    if(isMod == 1 && checkStatus.data !== 2) {
+      let payLoad = {
+        status: 'error',
+        data: {
+          errCode: 0,
+        },
+        message: '',
+      }
+      if(!checkStatus.data) {
+        payLoad.data.errCode = 706;
+        payLoad.message = errCode[706];
+      }
+      switch(checkStatus.data) {
+        case 0: 
           payLoad.data.errCode = 701;
           payLoad.message = errCode[701];
-        }
-        else if(checkStatus.data === 1) {
+          break;
+        case 1:
           payLoad.data.errCode = 702;
           payLoad.message = errCode[702];
-        }
-        res
-          .status(400)
-          .json(payLoad)
-          .end();
-        return;
-      } else if(checkStatus.data == null) {
-        res
-          .status(400)
-          .json({
-            status: 'error',
-            data: {
-              errCode: 706,
-            },
-            message: errCode[706],
-          })
-          .end();
-        return;
+          break;
+        case 3:
+          payLoad.data.errCode = 706;
+          payLoad.message = errCode[706];
+          break;
       }
+      res
+        .status(200)
+        .json(payLoad)
+        .end();
+      return;
     }
 
     // post ar file
-    if(checkStatus.data !== null && isMod == 0) {
+    if(isMod == 0 && checkStatus.data) {
       let payLoad = {
         status: 'error',
         data: {
@@ -187,10 +183,6 @@ router.post('/:productId', authorization, upload, async (req, res) => {
         case 2:
           payLoad.data.errCode = 703;
           payLoad.message = errCode[703];
-          break;
-        case 3:
-          payLoad.data.errCode = 704;
-          payLoad.message = errCode[704];
           break;
       }
       res
