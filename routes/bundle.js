@@ -129,7 +129,7 @@ router.post('/:productId', authorization, upload, async (req, res) => {
     }
 
     // modify ar file
-    if(isMod == 1 && checkStatus.data !== 2) {
+    if(isMod === 1 && checkStatus.data !== 2 && checkStatus.data !== 3) {
       let payLoad = {
         status: 'error',
         data: {
@@ -150,10 +150,6 @@ router.post('/:productId', authorization, upload, async (req, res) => {
           payLoad.data.errCode = 702;
           payLoad.message = errCode[702];
           break;
-        case 3:
-          payLoad.data.errCode = 706;
-          payLoad.message = errCode[706];
-          break;
       }
       res
         .status(200)
@@ -163,7 +159,7 @@ router.post('/:productId', authorization, upload, async (req, res) => {
     }
 
     // post ar file
-    if(isMod == 0 && checkStatus.data) {
+    if(isMod === 0 && checkStatus.data && checkStatus.data !== 3) {
       let payLoad = {
         status: 'error',
         data: {
