@@ -3,7 +3,7 @@ module.exports = {
   [
     {
       name: "worker",
-      script: "babel-node ./util/process.js",
+      script: "kill -9 $(lsof -t -i tcp:5000); node ./util/process.js",
       watch: false,
       env: {
         NODE_ENV: "production",
@@ -15,7 +15,7 @@ module.exports = {
     },
     {
       name: "main",
-      script: "babel-node ./bin/www.js",
+      script: "node ./bin/www.js",
       watch: false,
       env: {
         NODE_ENV: "production",

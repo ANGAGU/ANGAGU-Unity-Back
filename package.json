@@ -4,7 +4,7 @@
   "type": "commonjs",
   "private": true,
   "scripts": {
-    "start": "babel-node util/process.js & babel-node ./bin/www.js"
+    "start": "kill -9 $(lsof -t -i tcp:5000); babel-node ./util/process.js & babel-node ./bin/www.js"
   },
   "dependencies": {
     "@mitm/assetbundlecompiler": "^1.5.0",

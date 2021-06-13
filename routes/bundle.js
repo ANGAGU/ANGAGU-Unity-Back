@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router();
 
-import { upload, original, s3Upload, uploadOriginal } from '../util/file-upload.js';
+import { upload, uploadOriginal } from '../util/file-upload.js';
 import * as service from '../database/bundle-service.js';
 import { authorization } from '../util/auth.js';
 import errCode from '../util/errCode.js';
