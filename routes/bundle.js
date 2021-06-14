@@ -20,7 +20,7 @@ router.post('/:productId', authorization, upload, async (req, res) => {
     const { mainFile, textureFile } = req.files;
     const { isMod } = req.body;
     const mainExt = ['.obj', '.fbx', '.dae', '.3ds', '.dxf'];
-    const textureExt = ['.png', '.jpg', '.mtl'];
+    const textureExt = ['.png', '.jpg', '.jpeg', '.mtl'];
     const destination = '/home/ubuntu/angagu-unity/assets/result/result.assetbundle';
 
     if(!mainFile) {
